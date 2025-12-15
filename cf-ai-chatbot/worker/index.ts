@@ -1,11 +1,12 @@
 import { ChatMemory } from "./durable-objects/ChatMemory";
+import { RateLimiter } from "./durable-objects/RateLimiter";
 import { SummarizeConversation } from "./workflows/SummarizeConversation";
 import { handleCORS, errorResponse } from "./utils/cors";
 import { handleTranscribe } from "./handlers/transcribe";
 import { handleChat } from "./handlers/chat";
 import { handleGetConversation, handleDeleteConversation } from "./handlers/conversations";
 
-export { ChatMemory, SummarizeConversation };
+export { ChatMemory, RateLimiter, SummarizeConversation };
 
 // Trigger summarization workflow after this many messages
 const SUMMARIZE_THRESHOLD = 10;

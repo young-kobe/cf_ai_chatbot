@@ -1,4 +1,5 @@
 import { corsHeaders, errorResponse } from "../utils/cors";
+import { checkRateLimit, rateLimitResponse } from "../utils/rateLimit";
 
 /**
  * Handle audio transcription using Whisper AI
@@ -10,6 +11,14 @@ import { corsHeaders, errorResponse } from "../utils/cors";
  */
 export async function handleTranscribe(request: Request, env: Env): Promise<Response> {
   try {
+    // Rate limiting check
+    const { allowed, clientId } = await checkRateLimit(request, env);
+    
+    if (!allowed) {
+      console.warn(`Rate limit exceeded for transcription from client: ${clientId}`);
+      return rateLimitResponse(clientId);
+    }
+
     const formData = await request.formData();
     const audio = formData.get("audio");
 

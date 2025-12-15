@@ -1,5 +1,6 @@
 import { errorResponse } from "../utils/cors";
 import { streamAIResponse } from "../utils/streaming";
+import { checkRateLimit, rateLimitResponse } from "../utils/rateLimit";
 
 /**
  * Handle chat requests with streaming AI responses
@@ -16,6 +17,14 @@ export async function handleChat(
   summarizeThreshold: number
 ): Promise<Response> {
   try {
+    // Rate limiting check - FIRST LINE OF DEFENSE
+    const { allowed, clientId } = await checkRateLimit(request, env);
+    
+    if (!allowed) {
+      console.warn(`Rate limit exceeded for client: ${clientId}`);
+      return rateLimitResponse(clientId);
+    }
+
     const { message, conversationId } = (await request.json()) as {
       message: string;
       conversationId: string;

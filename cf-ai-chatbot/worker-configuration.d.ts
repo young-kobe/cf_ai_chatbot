@@ -4,10 +4,11 @@
 declare namespace Cloudflare {
 	interface GlobalProps {
 		mainModule: typeof import("./worker/index");
-		durableNamespaces: "ChatMemory";
+		durableNamespaces: "ChatMemory" | "RateLimiter";
 	}
 	interface Env {
 		CHAT_MEMORY: DurableObjectNamespace /* ChatMemory from cf-ai-chatbot */;
+		RATE_LIMITER: DurableObjectNamespace /* RateLimiter from cf-ai-chatbot */;
 		AI: Ai;
 		SUMMARIZE_WORKFLOW: Workflow<Parameters<import("./worker/index").SummarizeConversation['run']>[0]['payload']>;
 	}

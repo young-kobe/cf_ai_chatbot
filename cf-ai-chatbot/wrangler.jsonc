@@ -6,7 +6,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "cf-ai-chatbot",
 	"main": "worker/index.ts",
-	"compatibility_date": "2025-12-12",
+	"compatibility_date": "2025-12-10",
 	"assets": {
 		"not_found_handling": "single-page-application"
 	},
@@ -30,6 +30,11 @@
 				"name": "CHAT_MEMORY",
 				"class_name": "ChatMemory",
 				"script_name": "cf-ai-chatbot"
+			},
+			{
+				"name": "RATE_LIMITER",
+				"class_name": "RateLimiter",
+				"script_name": "cf-ai-chatbot"
 			}
 		]
 	},
@@ -37,6 +42,10 @@
 		{
 			"tag": "v1",
 			"new_classes": ["ChatMemory"]
+		},
+		{
+			"tag": "v2",
+			"new_classes": ["RateLimiter"]
 		}
 	],
 	/**
