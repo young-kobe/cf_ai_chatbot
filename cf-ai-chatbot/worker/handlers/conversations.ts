@@ -1,4 +1,5 @@
 import { corsHeaders, errorResponse } from "../utils/cors";
+import { getConversationId, getConversationStub } from "../utils/conversation";
 
 /**
  * Get conversation state from Durable Object
@@ -10,16 +11,10 @@ import { corsHeaders, errorResponse } from "../utils/cors";
  */
 export async function handleGetConversation(request: Request, env: Env): Promise<Response> {
   try {
-    const url = new URL(request.url);
-    const conversationId = url.pathname.split("/").pop();
+    const conversationId = getConversationId(request);
+    if (conversationId instanceof Response) return conversationId;
 
-    if (!conversationId) {
-      return errorResponse("Invalid conversation ID", 400);
-    }
-
-    const id = env.CHAT_MEMORY.idFromName(conversationId);
-    const stub = env.CHAT_MEMORY.get(id);
-
+    const stub = getConversationStub(conversationId, env);
     const stateResponse = await stub.fetch("http://internal/state");
     const state = await stateResponse.json();
 
@@ -40,16 +35,10 @@ export async function handleGetConversation(request: Request, env: Env): Promise
  */
 export async function handleDeleteConversation(request: Request, env: Env): Promise<Response> {
   try {
-    const url = new URL(request.url);
-    const conversationId = url.pathname.split("/").pop();
+    const conversationId = getConversationId(request);
+    if (conversationId instanceof Response) return conversationId;
 
-    if (!conversationId) {
-      return errorResponse("Invalid conversation ID", 400);
-    }
-
-    const id = env.CHAT_MEMORY.idFromName(conversationId);
-    const stub = env.CHAT_MEMORY.get(id);
-
+    const stub = getConversationStub(conversationId, env);
     await stub.fetch("http://internal/clear", { method: "POST" });
 
     return Response.json({ success: true }, { headers: corsHeaders });
