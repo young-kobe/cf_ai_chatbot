@@ -122,3 +122,7 @@ flip the gradient so red is on right so logo is more easily visible
 ```
 add a logo for linkedin and include a link to my profile kobe-tyler-young
 ```
+
+```
+the validation is too restrictive
+```
