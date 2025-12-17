@@ -1,134 +1,96 @@
 # Frontend Architecture
 
-This document describes the modular architecture of the KobeGPT frontend application.
+Modular React application with separation of concerns.
 
 ## Directory Structure
 
 ```
 src/
-├── components/          # Reusable UI components
-│   ├── ChatHeader.tsx   # Header with title and clear button
+├── components/          # UI components
+│   ├── ChatHeader.tsx   # Header with clear button
 │   ├── ChatFooter.tsx   # Footer with conversation ID
-│   ├── ChatInput.tsx    # Input form with text and voice input
+│   ├── ChatInput.tsx    # Text/voice input
 │   └── MessageList.tsx  # Message display with auto-scroll
-├── hooks/              # Custom React hooks
-│   ├── useChat.ts      # Chat logic and message management
-│   └── useAudioRecorder.ts  # Audio recording and transcription
-├── services/           # API communication layer
-│   └── chatApi.ts      # API calls (chat, transcribe, clear)
-├── types/              # TypeScript type definitions
+├── hooks/              # Business logic
+│   ├── useChat.ts      # Chat state and streaming
+│   └── useAudioRecorder.ts  # Audio recording
+├── services/           # API communication
+│   └── chatApi.ts      # HTTP requests
+├── types/              # TypeScript definitions
 │   └── message.ts      # Message interface
-├── App.tsx             # Main application component (orchestration)
-├── App.css             # Global styles
-└── main.tsx            # Application entry point
+└── App.tsx             # Main orchestrator (~30 lines)
 ```
 
 ## Component Responsibilities
 
-### App.tsx (Main Component)
-- **Purpose**: Orchestrates the application by composing all parts
-- **Responsibilities**:
-  - Manages conversation ID
-  - Connects hooks to components
-  - Handles clear conversation logic
-- **Size**: ~30 lines (reduced from ~270 lines)
+**App.tsx**
+- Manages conversation ID
+- Connects hooks to components
+- Handles clear conversation
 
-### Components
-
-#### ChatHeader
-- Displays app title
-- Clear conversation button
+**ChatHeader**
+- Displays title and clear button
 - Props: `onClear`, `hasMessages`
 
-#### MessageList
-- Displays conversation messages
-- Welcome message for empty state
-- Auto-scrolls to latest message
-- Shows typing indicator
+**MessageList**
+- Renders messages with auto-scroll
+- Welcome message when empty
+- Typing indicator
 - Props: `messages`, `isLoading`
 
-#### ChatInput
-- Text input field
-- Send button
-- Voice recording button (hold to record)
+**ChatInput**
+- Text input with send button
+- Hold-to-record voice button
 - Props: `onSend`, `onStartRecording`, `onStopRecording`, `isLoading`, `isRecording`, `isTranscribing`
 
-#### ChatFooter
-- Displays conversation ID
+**ChatFooter**
+- Shows conversation ID
 - Props: `conversationId`
 
-### Custom Hooks
+## Custom Hooks
 
-#### useChat
-- Manages chat messages state
-- Handles sending messages
-- Processes streaming responses
+**useChat**
+- Manages message state
+- Handles sending and streaming
 - Error handling
 - Returns: `messages`, `isLoading`, `sendMessage`, `clearMessages`
 
-#### useAudioRecorder
-- Manages audio recording state
-- Handles MediaRecorder API
+**useAudioRecorder**
+- MediaRecorder API wrapper
 - Triggers transcription
 - Returns: `isRecording`, `isTranscribing`, `startRecording`, `stopRecording`
 
-### Services
+## Services
 
-#### chatApi
-- `sendChatMessage()`: Sends message and handles streaming response
-- `transcribeAudio()`: Sends audio for transcription
-- `clearConversation()`: Deletes conversation history
-
-### Types
-
-#### Message
-- `role`: 'user' | 'assistant'
-- `content`: string
-- `timestamp`: number
-
-## Benefits of This Architecture
-
-1. **Separation of Concerns**: Each file has a single, well-defined purpose
-2. **Reusability**: Components and hooks can be easily reused
-3. **Testability**: Isolated units are easier to test
-4. **Maintainability**: Smaller files are easier to understand and modify
-5. **Type Safety**: Centralized type definitions prevent inconsistencies
-6. **Scalability**: Easy to add new features without bloating existing files
+**chatApi**
+- `sendChatMessage()` - POST with SSE streaming
+- `transcribeAudio()` - POST with FormData
+- `clearConversation()` - DELETE
 
 ## Data Flow
 
 ```
-User Input → ChatInput Component
-           ↓
-     useChat Hook / useAudioRecorder Hook
-           ↓
-     chatApi Service
-           ↓
-     Backend API
-           ↓
-     chatApi Service (response)
-           ↓
-     useChat Hook (state update)
-           ↓
-     MessageList Component (display)
+User Input
+    ↓
+Component (ChatInput)
+    ↓
+Hook (useChat / useAudioRecorder)
+    ↓
+Service (chatApi)
+    ↓
+Backend API
+    ↓
+Service (response parsing)
+    ↓
+Hook (state update)
+    ↓
+Component (MessageList)
 ```
 
-## Adding New Features
+## Benefits
 
-### Adding a New Component
-1. Create file in `src/components/`
-2. Define props interface
-3. Export component
-4. Import and use in `App.tsx` or other components
-
-### Adding a New Hook
-1. Create file in `src/hooks/`
-2. Implement hook logic
-3. Return state and functions
-4. Use in components or App.tsx
-
-### Adding a New API Call
-1. Add function to `src/services/chatApi.ts`
-2. Handle request/response
-3. Export function
-4. Use in hooks or components
+- Single Responsibility Principle
+- Reusable components and hooks
+- Easy to test
+- Type-safe
+- Scalable
