@@ -108,3 +108,17 @@ Update and refactor README.md, PROMPTS.md, ARCHITECTURE.md:
 - Update architecture with new flow
 - Only include user prompts (not AI responses)
 ```
+
+## UI Styling
+
+```
+can we make the themes space related? use /home/kobe/cf_ai_chatbot/cf-ai-chatbot/src/assets/blue-white-starry-night-sky.jpg for background and for logo use rockets_mascot_transparent.png. the color themes should be rockets red and navy blue. please style retro tron like style
+```
+
+```
+flip the gradient so red is on right so logo is more easily visible
+```
+
+```
+add a logo for linkedin and include a link to my profile kobe-tyler-young
+```
