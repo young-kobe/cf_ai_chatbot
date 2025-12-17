@@ -1,7 +1,14 @@
 import { errorResponse } from "../utils/cors";
 import { streamAIResponse } from "../utils/streaming";
 import { checkRateLimit, rateLimitResponse } from "../utils/rateLimit";
-import { validateMessage, validateConversationId, calculateSuspicionScore } from "../utils/validation";
+import { 
+  validateMessage, 
+  validateConversationId, 
+  calculateSuspicionScore,
+  sanitizeConversationId,
+  hasExcessiveSpecialChars,
+  detectEncodingAttack 
+} from "../utils/validation";
 import { getAssistantPrompt } from "../utils/prompts";
 
 /**
@@ -57,6 +64,32 @@ export async function handleChat(
     const message = messageValidation.sanitized!;
     const conversationId = body.conversationId as string;
 
+    // SECURITY: Additional validation checks
+    // Check for encoding attacks (base64, hex, unicode escapes)
+    if (detectEncodingAttack(message)) {
+      console.error('SECURITY: Encoding attack detected', {
+        clientId,
+        conversationId,
+        messageLength: message.length,
+        timestamp: new Date().toISOString(),
+      });
+      return errorResponse('Input validation failed: encoding attack detected', 400);
+    }
+
+    // Check for excessive special characters (obfuscation attempts)
+    if (hasExcessiveSpecialChars(message)) {
+      console.warn('SECURITY: Excessive special characters detected', {
+        clientId,
+        conversationId,
+        messageLength: message.length,
+        timestamp: new Date().toISOString(),
+      });
+      // Don't block, but log for monitoring
+    }
+
+    // SECURITY: Sanitize conversation ID
+    const sanitizedConversationId = sanitizeConversationId(conversationId);
+
     // SECURITY: Check for suspicious content (prompt injection attempts)
     if (messageValidation.isSuspicious) {
       const suspicionScore = calculateSuspicionScore(message);
@@ -68,7 +101,7 @@ export async function handleChat(
         patternCount: patterns.length,
         patterns: patterns.slice(0, 5), // First 5 patterns
         clientId,
-        conversationId,
+        conversationId: sanitizedConversationId,
         messageLength: message.length,
         timestamp: new Date().toISOString(),
         userAgent: request.headers.get('User-Agent'),
@@ -98,7 +131,7 @@ export async function handleChat(
     }
 
     // Get Durable Object for this conversation
-    const id = env.CHAT_MEMORY.idFromName(conversationId);
+    const id = env.CHAT_MEMORY.idFromName(sanitizedConversationId);
     const stub = env.CHAT_MEMORY.get(id);
 
     // Add user message to memory
@@ -137,7 +170,7 @@ export async function handleChat(
     return streamAIResponse(
       aiResponse,
       stub,
-      conversationId,
+      sanitizedConversationId,
       message,
       state,
       env,

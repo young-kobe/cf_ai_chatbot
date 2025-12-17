@@ -16,7 +16,7 @@ export const corsHeaders = {
 export function handleCORS(): Response {
   return new Response(null, {
     headers: {
-      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Origin": "https://kobeyoung.net",
       "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type",
     },

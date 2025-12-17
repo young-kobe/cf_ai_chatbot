@@ -5,14 +5,14 @@
  * Prompts are imported directly from markdown files in the prompts/ directory.
  */
 
-import assistantPrompt from '../prompts/assistant.md?raw';
+import chatbotPrompt from '../prompts/chatbot.md?raw';
 import summarizerPrompt from '../prompts/summarizer.md?raw';
 
 /**
  * Available system prompts
  */
 const PROMPTS = {
-  assistant: assistantPrompt,
+  assistant: chatbotPrompt,
   summarizer: summarizerPrompt,
 } as const;
 

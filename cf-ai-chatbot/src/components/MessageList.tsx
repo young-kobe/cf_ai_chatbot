@@ -21,7 +21,7 @@ export const MessageList = ({ messages, isLoading }: MessageListProps) => {
     <div className="messages-container">
       {messages.length === 0 && (
         <div className="welcome-message">
-          <h2>KobeGPT</h2>
+          <h2>Kobe-GPT</h2>
           <p>Cloudflare Summer 2026 Internship - AI App Submission</p>
           <p className="feature-note">
             Features: Llama 3.3 streaming • Whisper voice input • Durable Objects memory • Auto-summarization • Rate limiting • Prompt injection detection

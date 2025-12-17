@@ -83,6 +83,18 @@ const PROMPT_INJECTION_PATTERNS = [
   /<\|endoftext\|>/i,
   /<\|im_start\|>/i,
   /<\|im_end\|>/i,
+  
+  // API key and secret exposure attempts
+  /api[_\s-]?key/i,
+  /api[_\s-]?secret/i,
+  /access[_\s-]?token/i,
+  /secret[_\s-]?key/i,
+  /private[_\s-]?key/i,
+  /auth[_\s-]?token/i,
+  /bearer\s+[a-zA-Z0-9\-._~+/]+=*/i,
+  /sk-[a-zA-Z0-9]{20,}/i, // OpenAI-style keys
+  /pk-[a-zA-Z0-9]{20,}/i,
+  /[a-zA-Z0-9]{32,}/i, // Long alphanumeric strings (potential keys)
 ];
 
 /**
