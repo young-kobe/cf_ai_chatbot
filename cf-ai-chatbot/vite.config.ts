@@ -6,5 +6,5 @@ import { cloudflare } from "@cloudflare/vite-plugin";
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), cloudflare()],
-  build: {sourcemap: true}, // TODO: disable for production
+  build: {sourcemap: false}, // TODO: disable for production
 })

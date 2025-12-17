@@ -31,16 +31,46 @@ export function streamAIResponse(
   // Start async streaming process
   (async () => {
     try {
-      // Stream each token from AI
-      for await (const chunk of aiResponse as AsyncIterable<{ response?: string }>) {
-        if (chunk.response) {
-          fullResponse += chunk.response;
-          await writer.write(
-            encoder.encode(`data: ${JSON.stringify({ token: chunk.response })}\n\n`)
-          );
+      // Workers AI returns a ReadableStream in SSE format, we need to parse it
+      const reader = aiResponse.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        // Decode the chunk and add to buffer
+        buffer += decoder.decode(value, { stream: true });
+        
+        // Process complete lines
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ""; // Keep incomplete line in buffer
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            
+            // Skip empty data or metadata
+            if (!data || data.trim() === '' || data.includes('"response":""')) {
+              continue;
+            }
+            
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.response) {
+                fullResponse += parsed.response;
+                await writer.write(
+                  encoder.encode(`data: ${JSON.stringify({ token: parsed.response })}\n\n`)
+                );
+              }
+            } catch {
+              // Silently skip non-JSON lines
+            }
+          }
         }
       }
-
+      
       // Save complete assistant response to Durable Object
       await stub.fetch("http://internal/add", {
         method: "POST",

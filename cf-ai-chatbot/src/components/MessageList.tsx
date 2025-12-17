@@ -21,11 +21,12 @@ export const MessageList = ({ messages, isLoading }: MessageListProps) => {
     <div className="messages-container">
       {messages.length === 0 && (
         <div className="welcome-message">
-          <h2>Welcome! 👋</h2>
-          <p>Start a conversation by typing or recording a voice message.</p>
+          <h2>KobeGPT</h2>
+          <p>Cloudflare Summer 2026 Internship - AI App Submission</p>
           <p className="feature-note">
-            Powered by Llama 3.3 🦙 with Whisper voice transcription 🎤
+            Features: Llama 3.3 streaming • Whisper voice input • Durable Objects memory • Auto-summarization • Rate limiting • Prompt injection detection
           </p>
+          <p>Start chatting by typing or holding the microphone button.</p>
         </div>
       )}
 

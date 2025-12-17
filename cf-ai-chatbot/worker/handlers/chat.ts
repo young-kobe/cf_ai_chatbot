@@ -1,6 +1,8 @@
 import { errorResponse } from "../utils/cors";
 import { streamAIResponse } from "../utils/streaming";
 import { checkRateLimit, rateLimitResponse } from "../utils/rateLimit";
+import { validateMessage, validateConversationId, calculateSuspicionScore } from "../utils/validation";
+import { getAssistantPrompt } from "../utils/prompts";
 
 /**
  * Handle chat requests with streaming AI responses
@@ -25,14 +27,74 @@ export async function handleChat(
       return rateLimitResponse(clientId);
     }
 
-    const { message, conversationId } = (await request.json()) as {
-      message: string;
-      conversationId: string;
+    const body = (await request.json()) as {
+      message: unknown;
+      conversationId: unknown;
     };
 
-    // Validate request
-    if (!message || !conversationId) {
-      return errorResponse("Missing message or conversationId", 400);
+    // SECURITY: Validate message input
+    const messageValidation = validateMessage(body.message);
+    if (!messageValidation.valid) {
+      console.error('Invalid message input', {
+        error: messageValidation.error,
+        clientId,
+        timestamp: new Date().toISOString(),
+      });
+      return errorResponse(messageValidation.error!, 400);
+    }
+
+    // SECURITY: Validate conversation ID
+    const conversationIdValidation = validateConversationId(body.conversationId);
+    if (!conversationIdValidation.valid) {
+      console.error('Invalid conversation ID', {
+        error: conversationIdValidation.error,
+        clientId,
+        timestamp: new Date().toISOString(),
+      });
+      return errorResponse(conversationIdValidation.error!, 400);
+    }
+
+    const message = messageValidation.sanitized!;
+    const conversationId = body.conversationId as string;
+
+    // SECURITY: Check for suspicious content (prompt injection attempts)
+    if (messageValidation.isSuspicious) {
+      const suspicionScore = calculateSuspicionScore(message);
+      const patterns = messageValidation.suspiciousPatterns || [];
+      
+      // Log to Cloudflare Analytics/Logs (visible in dashboard)
+      console.warn('SECURITY: Suspicious input detected', {
+        suspicionScore,
+        patternCount: patterns.length,
+        patterns: patterns.slice(0, 5), // First 5 patterns
+        clientId,
+        conversationId,
+        messageLength: message.length,
+        timestamp: new Date().toISOString(),
+        userAgent: request.headers.get('User-Agent'),
+        cfRay: request.headers.get('CF-Ray'), // Cloudflare trace ID
+        cfCountry: request.headers.get('CF-IPCountry'),
+      });
+
+      // SECURITY POLICY: Reject high-risk inputs
+      if (suspicionScore > 80) {
+        console.error('SECURITY: High-risk input REJECTED', {
+          suspicionScore,
+          patternCount: patterns.length,
+          clientId,
+          timestamp: new Date().toISOString(),
+        });
+        return errorResponse('Input validation failed: suspicious content detected', 400);
+      }
+
+      // SECURITY POLICY: Warn for medium-risk inputs but allow
+      if (suspicionScore > 50) {
+        console.warn('SECURITY: Medium-risk input ALLOWED with monitoring', {
+          suspicionScore,
+          clientId,
+          timestamp: new Date().toISOString(),
+        });
+      }
     }
 
     // Get Durable Object for this conversation
@@ -55,9 +117,7 @@ export async function handleChat(
     };
 
     // Build context for Llama (include summary if available)
-    const systemMessage = state.summary
-      ? `You are a helpful AI assistant. Previous conversation summary: ${state.summary}`
-      : "You are a helpful AI assistant.";
+    const systemMessage = getAssistantPrompt(state.summary);
 
     const messages = [
       { role: "system", content: systemMessage },

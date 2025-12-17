@@ -1,4 +1,5 @@
 import { WorkflowEntrypoint, WorkflowStep, type WorkflowEvent } from "cloudflare:workers";
+import { getSummarizerPrompt } from "../utils/prompts";
 
 interface SummarizeParams {
   conversationId: string;
@@ -19,7 +20,7 @@ export class SummarizeConversation extends WorkflowEntrypoint<Env, SummarizePara
         messages: [
           {
             role: "system",
-            content: "You are a helpful assistant that creates concise summaries of conversations. Summarize the key points and context in 2-3 sentences.",
+            content: getSummarizerPrompt(),
           },
           {
             role: "user",
