@@ -30,10 +30,12 @@ export const sendChatMessage = async (
       const chunk = decoder.decode(value);
       console.log('Received chunk:', chunk);
       const lines = chunk.split('\n');
+      console.log('Number of lines:', lines.length);
 
       for (const line of lines) {
         if (line.startsWith('data: ')) {
           const data = line.slice(6);
+          console.log('SSE data:', data);
           if (data === '[DONE]') {
             break;
           }
