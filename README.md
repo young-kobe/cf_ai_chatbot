@@ -1,4 +1,5 @@
 # cf_ai_chatbot
+PRODUCTION LINK: https://kobeyoung.net
 
 Production AI chatbot built on Cloudflare's edge platform with voice transcription, persistent memory, and automatic conversation summarization.
 
