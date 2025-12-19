@@ -86,7 +86,6 @@ cf-ai-chatbot/
 - CORS configuration (update in worker/utils/cors.ts for production)
 - Structured logging to Cloudflare dashboard
 
-See SECURITY_AUDIT.md and SECURITY_IMPLEMENTATION.md for details.
 
 ## Documentation
 
