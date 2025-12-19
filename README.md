@@ -93,9 +93,6 @@ See SECURITY_AUDIT.md and SECURITY_IMPLEMENTATION.md for details.
 - **README.md** - This file
 - **PROMPTS.md** - Development prompts
 - **ARCHITECTURE.md** - Frontend architecture
-- **PROMPTS_ARCHITECTURE.md** - System prompts management
-- **SECURITY_AUDIT.md** - Security assessment
-- **SECURITY_IMPLEMENTATION.md** - Security setup guide
 
 ## License
 
